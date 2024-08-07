@@ -1,0 +1,13 @@
+django
+django-honeypot
+django-notifications-hq
+django-activity-stream 
+djangorestframework
+python-dotenv
+setuptools
+django-cors-headers
+channels
+channels-redis
+
+
+

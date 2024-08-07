@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Social Media App</title>
+</head>
+<body>
+    <h1>Social Media Application</h1>
+    <div id="notificationsContainer"><h2>Notifications</h2></div>
+    <div id="postsContainer"><h2>Posts</h2></div>
+    <div id="commentsContainer"><h2>Comments</h2></div>
+    
+    <button onclick="fetchPosts()">Load Posts</button>
+    <button onclick="fetchComments()">Load Comments</button>
+    <button onclick="fetchNotifications()">Load Notifications</button>
+    <button onclick="socket()">Start WebSocket</button>
+   <script src="app.js"></script>
+   <script>
+    function fetchPosts() {
+    fetch('http://127.0.0.1:8000/api/posts/')
+        .then(response => response.json())
+        .then(data => {
+            const postsContainer = document.getElementById('postsContainer');
+            postsContainer.innerHTML = '';  // Mevcut içeriği temizle
+
+            data.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.innerHTML = `<p>${post.content}</p>`;
+                postsContainer.appendChild(postElement);
+            });
+        })
+        .catch(error => console.error('Error fetching posts:', error));
+}
+
+function fetchComments() {
+    fetch('http://127.0.0.1:8000/api/comments/')
+        .then(response => response.json())
+        .then(data => {
+            const commentsContainer = document.getElementById('commentsContainer');
+            commentsContainer.innerHTML = '';  // Mevcut içeriği temizle
+
+            data.forEach(comment => {
+                const commentElement = document.createElement('div');
+                commentElement.innerHTML = `<p>${comment.text}</p>`;
+                commentsContainer.appendChild(commentElement);
+            });
+        })
+        .catch(error => console.error('Error fetching comments:', error));
+}
+
+function fetchNotifications() {
+    fetch('http://127.0.0.1:8000/api/notifications/')
+        .then(response => response.json())
+        .then(data => {
+            const notificationsContainer = document.getElementById('notificationsContainer');
+            notificationsContainer.innerHTML = '';  // Mevcut içeriği temizle
+
+            data.forEach(notification => {
+                const notificationElement = document.createElement('div');
+                notificationElement.innerHTML = `
+                    <p>Verb: ${notification.verb}</p>
+                    <p>From User ID: ${notification.actor_object_id}</p>
+                    <p>Recipient ID: ${notification.recipient}</p>
+                `;
+                notificationsContainer.appendChild(notificationElement);
+            });
+        })
+        .catch(error => console.error('Error fetching notifications:', error));
+}
+    function socket() {
+        console.log('hello');
+        var loc = window.location;
+        var wsStart = "ws://";
+        if (loc.protocol === "https:"){
+            wsStart = "wss://";
+        }
+        var webSocketEndpoint = wsStart + loc.host + '/ws/notifications/';
+
+        var socket = new WebSocket(webSocketEndpoint);
+        console.log(socket);
+           // Socket Connect Functionality
+        socket.onopen = function(e){
+            console.log('open', e);
+        };
+
+        socket.onmessage = function(e){
+            console.log('message', e);
+            const data = JSON.parse(e.data);
+            if (data.type === 'notification') {
+                console.log('Notification:', data.message);
+                const notificationsContainer = document.getElementById('notificationsContainer');
+                const notificationElement = document.createElement('div');
+                notificationElement.innerHTML = `<p>${data.message}</p>`;
+                notificationsContainer.appendChild(notificationElement);
+            }
+        };
+
+      
+        // Socket Error Functionality
+        socket.onerror = function(e){
+            console.log('error', e);
+        };
+
+        // Socket close Functionality
+        socket.onclose = function(e){
+            console.log('closed', e);
+        };
+    }
+</script>
+</body>
+</html>
